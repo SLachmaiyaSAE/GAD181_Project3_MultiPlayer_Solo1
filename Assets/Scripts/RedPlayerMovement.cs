@@ -1,134 +1,51 @@
-//using System.Collections;
-//using System.Collections.Generic;
-//using UnityEngine;
-
-//public class RedPlayerMovement : MonoBehaviour
-//{
-//    public float moveSpeed;
-//    public Transform orientation;
-
-//    float horizontalInput;
-//    float verticalInput;
-
-//    Vector3 moveDirection;
-
-//    public GameObject RedPlayer;
-//    private Rigidbody rb;
-
-
-//    private void Start()
-//    {
-//        rb = GetComponent<Rigidbody>();
-//    }
-
-
-//    private void Update()
-//    {
-//        MyInput();
-//    }
-
-//    private void FixedUpdate()
-//    {
-//        MovePlayer();
-//    }
-
-
-//    private void MyInput()
-//    {
-//        horizontalInput = Input.GetAxisRaw("Horizontal");
-//        verticalInput = Input.GetAxisRaw("Vertical");
-//    }
-
-//    private void MovePlayer()
-//    {
-//        moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-
-//        rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
-//    }
-//}
-
-
-using System.Collections;
 using UnityEngine;
 
-[RequireComponent(typeof(CharacterController))]
-public class BlueMovement : MonoBehaviour
+public class RedMovement : MonoBehaviour
 {
-    // INSTRUCTIONS
-    // This script must be on an object that has a Character Controller component.
-    // It will add this component if the object does not already have it.
-    //    This is done by line 4: "[RequireComponent(typeof(CharacterController))]"
-    //
-    // Also, make a camera a child of this object and tilt it the way you want it to tilt.
-    // The mouse will let you turn the object, and therefore, the camera.
-
-    // These variables (visible in the inspector) are for you to set up to match the right feel
-    public float speed = 12f;
-    public float speedH = 2.0f;
-    public float speedV = 2.0f;
-    public float yaw = 0.0f;
-    public float pitch = 0.0f;
-
-    // This must be linked to the object that has the "Character Controller" in the inspector. You may need to add this component to the object
-    public CharacterController controller;
-    private Vector3 velocity;
-
-    // Customisable gravity
-    public float gravity = -20f;
-
-    // Tells the script how far to keep the object off the ground
-    public float groundDistance = 0.4f;
-
-    // So the script knows if you can jump!
+    public float speed = 1f;
+    private Rigidbody rb;
     private bool isGrounded;
+    public LayerMask groundLayer;
+    public GameObject redPlayer;
+    public GameObject bluePlayer;
 
-    // How high the player can jump
-    public float jumpHeight = 2f;
-
-    private void Start()
+    void Start()
     {
-        // If the variable "controller" is empty...
-        if (controller == null)
-        {
-            // ...then this searches the components on the gameobject and gets a reference to the CharacterController class
-            controller = GetComponent<CharacterController>();
-        }
+        rb = redPlayer.GetComponentInChildren<Rigidbody>();
     }
 
-    private void Update()
+    void Update()
     {
-        // These lines let the script rotate the player based on the mouse moving
-        yaw += speedH * Input.GetAxis("Mouse X");
-        pitch -= speedV * Input.GetAxis("Mouse Y");
+        // Check for ground
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, 0.1f, groundLayer);
 
-        // Get the Left/Right and Forward/Back values of the input being used (WASD, Joystick etc.)
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
 
-        // Let the player jump if they are on the ground and they press the jump button
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        Vector3 movement = new Vector3(horizontalInput, 0, verticalInput);
+
+        if (Input.GetKey(KeyCode.LeftArrow))
         {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
+            movement = new Vector3(-speed, 0, 0);
         }
 
-        // Rotate the player based off those mouse values we collected earlier
-        transform.eulerAngles = new Vector3(0.0f, yaw, 0.0f);
-
-        // This is stealing the data about the player being on the ground from the character controller
-        isGrounded = controller.isGrounded;
-
-        if (isGrounded && velocity.y < 0)
+        if (Input.GetKey(KeyCode.RightArrow))
         {
-            velocity.y = -2f;
+            movement = new Vector3(speed, 0, 0);
         }
 
-        // This fakes gravity!
-        velocity.y += gravity * Time.deltaTime;
 
-        // This takes the Left/Right and Forward/Back values to build a vector
-        Vector3 move = transform.right * x + transform.forward * z;
+        if (Input.GetKey(KeyCode.UpArrow))
+        {
+            movement = new Vector3(0, 0, speed);
+        }
 
-        // Finally, it applies that vector it just made to the character
-        controller.Move(move * speed * Time.deltaTime + velocity * Time.deltaTime);
+        if (Input.GetKey(KeyCode.DownArrow))
+        {
+            movement = new Vector3(0, 0, -speed);
+        }
+
+       
+        rb.velocity = new Vector3(movement.x, rb.velocity.y, movement.z);
     }
 }
